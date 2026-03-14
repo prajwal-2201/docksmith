@@ -1,3 +1,14 @@
+package parser
+
+import "strings"
+
+type Instruction struct {
+	Type string
+	Args []string
+	Raw  string
+	Line int
+}
+
 func Parse(lines []string) ([]Instruction, error) {
 
 	instructions := []Instruction{}

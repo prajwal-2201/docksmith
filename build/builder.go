@@ -10,6 +10,7 @@ type Builder struct{}
 func (b *Builder) Build(instr []parser.Instruction) error {
 
 	state := NewState()
+	_ = state
 
 	for _, inst := range instr {
 
