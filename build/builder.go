@@ -20,7 +20,17 @@ func (b *Builder) Build(instructions []parser.Instruction) (*BuildState, error) 
 		switch inst.Type {
 
 		case "FROM":
-			// handled later
+
+			if len(inst.Args) != 1 {
+				return nil, fmt.Errorf("FROM requires exactly one argument at line %d", inst.Line)
+			}
+
+			base := inst.Args[0]
+
+			// temporary behavior (until image store from Person A)
+			fmt.Println("Using base image:", base)
+
+			state.PrevLayer = ""
 
 		case "COPY":
 
