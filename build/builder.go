@@ -1,6 +1,7 @@
 package build
 
 import (
+	"docksmith/cache"
 	"docksmith/parser"
 	"docksmith/utils"
 	"fmt"
@@ -9,7 +10,9 @@ import (
 	"strings"
 )
 
-type Builder struct{}
+type Builder struct {
+	Cache *cache.Cache
+}
 
 func (b *Builder) Build(instructions []parser.Instruction) (*BuildState, error) {
 

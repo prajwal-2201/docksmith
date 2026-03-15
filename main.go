@@ -2,6 +2,7 @@ package main
 
 import (
 	"docksmith/build"
+	"docksmith/cache"
 	"docksmith/parser"
 	"fmt"
 )
@@ -13,7 +14,9 @@ func main() {
 		panic(err)
 	}
 
-	builder := build.Builder{}
+	builder := build.Builder{
+		Cache: cache.NewCache(),
+	}
 
 	state, err := builder.Build(instructions)
 	if err != nil {
