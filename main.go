@@ -29,4 +29,14 @@ func main() {
 	fmt.Println("Cmd:", state.Cmd)
 
 	fmt.Println("Build completed")
+
+	key := cache.ComputeKey(
+		"sha256:abc",
+		"COPY . /app",
+		"/app",
+		map[string]string{"PORT": "8080"},
+		[]string{"main.go", "parser.go"},
+	)
+
+	fmt.Println("cache key:", key)
 }
