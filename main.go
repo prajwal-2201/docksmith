@@ -1,18 +1,18 @@
 package main
 
 import (
-	"docksmith/parser"
+	"docksmith/build"
 	"fmt"
 )
 
 func main() {
 
-	instructions, err := parser.ParseFile("Docksmithfile")
+	files, err := build.CollectFiles("*.go")
 	if err != nil {
 		panic(err)
 	}
 
-	for _, inst := range instructions {
-		fmt.Println(inst)
+	for _, f := range files {
+		fmt.Println(f)
 	}
 }
