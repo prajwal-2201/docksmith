@@ -2,17 +2,21 @@ package main
 
 import (
 	"docksmith/build"
+	"docksmith/utils"
 	"fmt"
 )
 
 func main() {
 
-	files, err := build.CollectFiles("*.go")
+	files, _ := build.CollectFiles("*.go")
+
+	layer, err := build.CreateLayer(files)
 	if err != nil {
 		panic(err)
 	}
 
-	for _, f := range files {
-		fmt.Println(f)
-	}
+	digest := utils.ComputeDigest(layer)
+
+	fmt.Println("layer size:", len(layer))
+	fmt.Println("digest:", digest)
 }
