@@ -15,10 +15,15 @@ func main() {
 
 	builder := build.Builder{}
 
-	err = builder.Build(instructions)
+	state, err := builder.Build(instructions)
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println("Layers:", state.Layers)
+	fmt.Println("Workdir:", state.WorkDir)
+	fmt.Println("Env:", state.Env)
+	fmt.Println("Cmd:", state.Cmd)
 
 	fmt.Println("Build completed")
 }

@@ -5,6 +5,7 @@ type BuildState struct {
 	WorkDir   string
 	Env       map[string]string
 	PrevLayer string
+	Cmd       []string
 }
 
 func NewState() *BuildState {

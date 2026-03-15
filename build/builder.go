@@ -4,11 +4,12 @@ import (
 	"docksmith/parser"
 	"docksmith/utils"
 	"fmt"
+	"strings"
 )
 
 type Builder struct{}
 
-func (b *Builder) Build(instructions []parser.Instruction) error {
+func (b *Builder) Build(instructions []parser.Instruction) (*BuildState, error) {
 
 	state := NewState()
 
@@ -22,19 +23,19 @@ func (b *Builder) Build(instructions []parser.Instruction) error {
 		case "COPY":
 
 			if len(inst.Args) < 2 {
-				return fmt.Errorf("COPY requires source and destination at line %d", inst.Line)
+				return nil, fmt.Errorf("COPY requires source and destination at line %d", inst.Line)
 			}
 
 			src := inst.Args[0]
 
 			files, err := CollectFiles(src)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			layer, err := CreateLayer(files)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			digest := utils.ComputeDigest(layer)
@@ -46,16 +47,35 @@ func (b *Builder) Build(instructions []parser.Instruction) error {
 			// run command later
 
 		case "WORKDIR":
+
+			if len(inst.Args) != 1 {
+				return nil, fmt.Errorf("WORKDIR requires exactly one argument at line %d", inst.Line)
+			}
+
 			state.WorkDir = inst.Args[0]
 
 		case "ENV":
-			// set env later
+
+			if len(inst.Args) != 1 {
+				return nil, fmt.Errorf("ENV must be KEY=value format at line %d", inst.Line)
+			}
+
+			parts := strings.SplitN(inst.Args[0], "=", 2)
+
+			if len(parts) != 2 {
+				return nil, fmt.Errorf("invalid ENV format at line %d", inst.Line)
+			}
+
+			key := parts[0]
+			value := parts[1]
+
+			state.Env[key] = value
 
 		case "CMD":
-			// store command later
+			state.Cmd = inst.Args
 
 		}
 	}
 
-	return nil
+	return state, nil
 }
