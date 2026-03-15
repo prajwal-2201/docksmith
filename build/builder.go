@@ -4,6 +4,8 @@ import (
 	"docksmith/parser"
 	"docksmith/utils"
 	"fmt"
+	"os"
+	"os/exec"
 	"strings"
 )
 
@@ -44,7 +46,19 @@ func (b *Builder) Build(instructions []parser.Instruction) (*BuildState, error) 
 			state.PrevLayer = digest
 
 		case "RUN":
-			// run command later
+
+			if len(inst.Args) == 0 {
+				return nil, fmt.Errorf("RUN requires a command at line %d", inst.Line)
+			}
+
+			cmd := exec.Command(inst.Args[0], inst.Args[1:]...)
+			cmd.Stdout = os.Stdout
+			cmd.Stderr = os.Stderr
+
+			err := cmd.Run()
+			if err != nil {
+				return nil, err
+			}
 
 		case "WORKDIR":
 

@@ -2,5 +2,5 @@ FROM alpine:3.18
 WORKDIR /app
 COPY . /app
 ENV PORT=8080
-RUN echo hello
+RUN echo BUILD_OK
 CMD ["python","main.py"]
