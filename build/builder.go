@@ -1,41 +1,34 @@
 package build
 
-import (
-	"docksmith/parser"
-	"fmt"
-)
+import "docksmith/parser"
 
 type Builder struct{}
 
-func (b *Builder) Build(instr []parser.Instruction) error {
+func (b *Builder) Build(instructions []parser.Instruction) error {
 
 	state := NewState()
-	_ = state
 
-	for _, inst := range instr {
+	for _, inst := range instructions {
 
 		switch inst.Type {
 
 		case "FROM":
-			// load base image
+			// handled later
 
 		case "COPY":
-			// create layer
+			// create layer later
 
 		case "RUN":
-			// execute command
+			// run command later
 
 		case "WORKDIR":
-			// update state
+			state.WorkDir = inst.Args[0]
 
 		case "ENV":
-			// update env
+			// set env later
 
 		case "CMD":
-			// store cmd
-
-		default:
-			return fmt.Errorf("unknown instruction at line %d", inst.Line)
+			// store command later
 
 		}
 	}
