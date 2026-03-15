@@ -11,12 +11,14 @@ import (
 )
 
 type Builder struct {
-	Cache *cache.Cache
+	Cache   *cache.Cache
+	NoCache bool
 }
 
 func (b *Builder) Build(instructions []parser.Instruction) (*BuildState, error) {
 
 	state := NewState()
+	cacheBroken := b.NoCache
 
 	for _, inst := range instructions {
 
@@ -48,6 +50,28 @@ func (b *Builder) Build(instructions []parser.Instruction) (*BuildState, error) 
 				return nil, err
 			}
 
+			key := cache.ComputeKey(
+				state.PrevLayer,
+				inst.Raw,
+				state.WorkDir,
+				state.Env,
+				files,
+			)
+
+			if !cacheBroken {
+				if digest, ok := b.Cache.Lookup(key); ok {
+
+					fmt.Println(inst.Raw, "[CACHE HIT]")
+
+					state.Layers = append(state.Layers, digest)
+					state.PrevLayer = digest
+
+					break
+				}
+			}
+
+			fmt.Println(inst.Raw, "[CACHE MISS]")
+
 			layer, err := CreateLayer(files)
 			if err != nil {
 				return nil, err
@@ -55,14 +79,40 @@ func (b *Builder) Build(instructions []parser.Instruction) (*BuildState, error) 
 
 			digest := utils.ComputeDigest(layer)
 
+			b.Cache.Store(key, digest)
+
 			state.Layers = append(state.Layers, digest)
 			state.PrevLayer = digest
+
+			cacheBroken = true
 
 		case "RUN":
 
 			if len(inst.Args) == 0 {
 				return nil, fmt.Errorf("RUN requires a command at line %d", inst.Line)
 			}
+
+			key := cache.ComputeKey(
+				state.PrevLayer,
+				inst.Raw,
+				state.WorkDir,
+				state.Env,
+				nil,
+			)
+
+			if !b.NoCache && !cacheBroken {
+				if digest, ok := b.Cache.Lookup(key); ok {
+
+					fmt.Println(inst.Raw, "[CACHE HIT]")
+
+					state.Layers = append(state.Layers, digest)
+					state.PrevLayer = digest
+
+					break
+				}
+			}
+
+			fmt.Println(inst.Raw, "[CACHE MISS]")
 
 			cmd := exec.Command(inst.Args[0], inst.Args[1:]...)
 			cmd.Stdout = os.Stdout
@@ -72,6 +122,14 @@ func (b *Builder) Build(instructions []parser.Instruction) (*BuildState, error) 
 			if err != nil {
 				return nil, err
 			}
+
+			digest := state.PrevLayer
+
+			if !b.NoCache {
+				b.Cache.Store(key, digest)
+			}
+
+			cacheBroken = true
 
 		case "WORKDIR":
 

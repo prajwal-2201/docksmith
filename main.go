@@ -15,10 +15,18 @@ func main() {
 	}
 
 	builder := build.Builder{
-		Cache: cache.NewCache(),
+		Cache:   cache.NewCache(),
+		NoCache: true,
 	}
 
 	state, err := builder.Build(instructions)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("---- SECOND BUILD ----")
+
+	state, err = builder.Build(instructions)
 	if err != nil {
 		panic(err)
 	}
