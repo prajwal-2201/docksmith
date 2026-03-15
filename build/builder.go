@@ -20,7 +20,13 @@ func (b *Builder) Build(instructions []parser.Instruction) (*BuildState, error) 
 	state := NewState()
 	cacheBroken := b.NoCache
 
+	totalSteps := len(instructions)
+	step := 0
+
 	for _, inst := range instructions {
+
+		step++
+		fmt.Printf("Step %d/%d: %s\n", step, totalSteps, inst.Raw)
 
 		switch inst.Type {
 
@@ -61,7 +67,7 @@ func (b *Builder) Build(instructions []parser.Instruction) (*BuildState, error) 
 			if !cacheBroken {
 				if digest, ok := b.Cache.Lookup(key); ok {
 
-					fmt.Println(inst.Raw, "[CACHE HIT]")
+					fmt.Println("[CACHE HIT]")
 
 					state.Layers = append(state.Layers, digest)
 					state.PrevLayer = digest
@@ -70,7 +76,7 @@ func (b *Builder) Build(instructions []parser.Instruction) (*BuildState, error) 
 				}
 			}
 
-			fmt.Println(inst.Raw, "[CACHE MISS]")
+			fmt.Println("[CACHE MISS]")
 
 			layer, err := CreateLayer(files)
 			if err != nil {
@@ -103,7 +109,7 @@ func (b *Builder) Build(instructions []parser.Instruction) (*BuildState, error) 
 			if !b.NoCache && !cacheBroken {
 				if digest, ok := b.Cache.Lookup(key); ok {
 
-					fmt.Println(inst.Raw, "[CACHE HIT]")
+					fmt.Println("[CACHE HIT]")
 
 					state.Layers = append(state.Layers, digest)
 					state.PrevLayer = digest
@@ -112,7 +118,7 @@ func (b *Builder) Build(instructions []parser.Instruction) (*BuildState, error) 
 				}
 			}
 
-			fmt.Println(inst.Raw, "[CACHE MISS]")
+			fmt.Println("[CACHE MISS]")
 
 			cmd := exec.Command(inst.Args[0], inst.Args[1:]...)
 			cmd.Stdout = os.Stdout
