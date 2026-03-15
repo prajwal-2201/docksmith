@@ -12,15 +12,47 @@ import (
 
 func CollectFiles(pattern string) ([]string, error) {
 
+	var files []string
+
 	matches, err := filepath.Glob(pattern)
 	if err != nil {
 		return nil, err
 	}
 
-	// deterministic order
-	sort.Strings(matches)
+	for _, match := range matches {
 
-	return matches, nil
+		info, err := os.Stat(match)
+		if err != nil {
+			return nil, err
+		}
+
+		if info.IsDir() {
+
+			err := filepath.Walk(match, func(path string, info os.FileInfo, err error) error {
+
+				if err != nil {
+					return err
+				}
+
+				if !info.IsDir() {
+					files = append(files, path)
+				}
+
+				return nil
+			})
+
+			if err != nil {
+				return nil, err
+			}
+
+		} else {
+			files = append(files, match)
+		}
+	}
+
+	sort.Strings(files)
+
+	return files, nil
 }
 
 func CreateLayer(files []string) ([]byte, error) {

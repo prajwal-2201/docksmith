@@ -2,21 +2,23 @@ package main
 
 import (
 	"docksmith/build"
-	"docksmith/utils"
+	"docksmith/parser"
 	"fmt"
 )
 
 func main() {
 
-	files, _ := build.CollectFiles("*.go")
-
-	layer, err := build.CreateLayer(files)
+	instructions, err := parser.ParseFile("Docksmithfile")
 	if err != nil {
 		panic(err)
 	}
 
-	digest := utils.ComputeDigest(layer)
+	builder := build.Builder{}
 
-	fmt.Println("layer size:", len(layer))
-	fmt.Println("digest:", digest)
+	err = builder.Build(instructions)
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("Build completed")
 }

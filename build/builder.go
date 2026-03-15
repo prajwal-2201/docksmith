@@ -1,6 +1,10 @@
 package build
 
-import "docksmith/parser"
+import (
+	"docksmith/parser"
+	"docksmith/utils"
+	"fmt"
+)
 
 type Builder struct{}
 
@@ -16,7 +20,27 @@ func (b *Builder) Build(instructions []parser.Instruction) error {
 			// handled later
 
 		case "COPY":
-			// create layer later
+
+			if len(inst.Args) < 2 {
+				return fmt.Errorf("COPY requires source and destination at line %d", inst.Line)
+			}
+
+			src := inst.Args[0]
+
+			files, err := CollectFiles(src)
+			if err != nil {
+				return err
+			}
+
+			layer, err := CreateLayer(files)
+			if err != nil {
+				return err
+			}
+
+			digest := utils.ComputeDigest(layer)
+
+			state.Layers = append(state.Layers, digest)
+			state.PrevLayer = digest
 
 		case "RUN":
 			// run command later
