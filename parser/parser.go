@@ -1,6 +1,11 @@
 package parser
 
-import "strings"
+import (
+	"bufio"
+	"fmt"
+	"os"
+	"strings"
+)
 
 type Instruction struct {
 	Type string
@@ -9,26 +14,61 @@ type Instruction struct {
 	Line int
 }
 
-func Parse(lines []string) ([]Instruction, error) {
+var allowed = map[string]bool{
+	"FROM":    true,
+	"COPY":    true,
+	"RUN":     true,
+	"WORKDIR": true,
+	"ENV":     true,
+	"CMD":     true,
+}
 
-	instructions := []Instruction{}
+func ParseFile(path string) ([]Instruction, error) {
 
-	for i, line := range lines {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
 
-		if line == "" {
+	var instructions []Instruction
+	scanner := bufio.NewScanner(file)
+
+	lineNumber := 0
+
+	for scanner.Scan() {
+
+		lineNumber++
+		line := strings.TrimSpace(scanner.Text())
+
+		if line == "" || strings.HasPrefix(line, "#") {
 			continue
 		}
 
 		parts := strings.Fields(line)
 
-		instr := Instruction{
-			Type: strings.ToUpper(parts[0]),
-			Args: parts[1:],
-			Raw:  line,
-			Line: i + 1,
+		if len(parts) == 0 {
+			continue
 		}
 
-		instructions = append(instructions, instr)
+		cmd := strings.ToUpper(parts[0])
+
+		if !allowed[cmd] {
+			return nil, fmt.Errorf(
+				"unknown instruction at line %d: %s",
+				lineNumber,
+				cmd,
+			)
+		}
+
+		inst := Instruction{
+			Type: cmd,
+			Args: parts[1:],
+			Raw:  line,
+			Line: lineNumber,
+		}
+
+		instructions = append(instructions, inst)
 	}
 
 	return instructions, nil
